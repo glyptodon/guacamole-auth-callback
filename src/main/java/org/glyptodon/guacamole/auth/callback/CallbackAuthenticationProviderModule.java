@@ -24,10 +24,12 @@ package org.glyptodon.guacamole.auth.callback;
 
 import org.glyptodon.guacamole.auth.callback.conf.ConfigurationService;
 import com.google.inject.AbstractModule;
+import com.google.inject.Scopes;
 import org.apache.guacamole.GuacamoleException;
 import org.apache.guacamole.environment.Environment;
 import org.apache.guacamole.environment.LocalEnvironment;
 import org.apache.guacamole.net.auth.AuthenticationProvider;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.glyptodon.guacamole.auth.callback.user.UserDataService;
 
 /**
@@ -79,6 +81,9 @@ public class CallbackAuthenticationProviderModule extends AbstractModule {
         // Bind services
         bind(ConfigurationService.class);
         bind(UserDataService.class);
+
+        // Bind singleton ObjectMapper for JSON serialization/deserialization
+        bind(ObjectMapper.class).in(Scopes.SINGLETON);
 
     }
 

@@ -23,11 +23,16 @@
 package org.glyptodon.guacamole.auth.callback.conf;
 
 import com.google.inject.Inject;
+import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import org.apache.guacamole.GuacamoleException;
 import org.apache.guacamole.environment.Environment;
 import org.apache.guacamole.properties.BooleanGuacamoleProperty;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.glyptodon.guacamole.auth.callback.user.UserData;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Service for retrieving configuration information regarding the callback
@@ -36,10 +41,21 @@ import org.glyptodon.guacamole.auth.callback.user.UserData;
 public class ConfigurationService {
 
     /**
+     * Logger for this class.
+     */
+    private final Logger logger = LoggerFactory.getLogger(ConfigurationService.class);
+
+    /**
      * The Guacamole server environment.
      */
     @Inject
     private Environment environment;
+
+    /**
+     * ObjectMapper for serializing/deserializing JSON.
+     */
+    @Inject
+    private ObjectMapper mapper;
 
     /**
      * The filename of the JSON file within GUACAMOLE_HOME which should be used
@@ -123,8 +139,27 @@ public class ConfigurationService {
      */
     public UserData getDefaultResponse() {
 
-        // FIXME: STUB
-        return new UserData();
+        File defaultResponse = new File(environment.getGuacamoleHome(),
+                DEFAULT_USERDATA_FILENAME);
+
+        // Do nothing if file does not appear to exist
+        if (!defaultResponse.exists()) {
+            logger.debug("Default response file \"{}\" does not appear to "
+                    + "exist. Assuming no default.", defaultResponse);
+            return null;
+        }
+
+        // Attempt to parse file
+        try {
+            return mapper.readValue(defaultResponse, UserData.class);
+        }
+
+        // Return no data if file could not be parsed
+        catch (IOException e) {
+            logger.info("Could not read default response from \"{}\": {}", defaultResponse, e.getMessage());
+            logger.debug("Failed to read default response file \"{}\".", defaultResponse, e);
+            return null;
+        }
 
     }
 
