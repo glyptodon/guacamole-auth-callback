@@ -25,7 +25,7 @@ package org.glyptodon.guacamole.auth.callback.conf;
 import com.google.inject.Inject;
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
 import org.apache.guacamole.GuacamoleException;
 import org.apache.guacamole.environment.Environment;
 import org.apache.guacamole.properties.BooleanGuacamoleProperty;
@@ -65,15 +65,15 @@ public class ConfigurationService {
             "callback-default-response.json";
 
     /**
-     * The property which defines the HTTP or HTTPS URL which should be used as
+     * The property which defines the HTTP or HTTPS URI which should be used as
      * the authentication callback.
      */
-    private static final URLGuacamoleProperty CALLBACK_AUTH_URL =
-            new URLGuacamoleProperty() {
+    private static final URIGuacamoleProperty CALLBACK_AUTH_URI =
+            new URIGuacamoleProperty() {
 
         @Override
         public String getName() {
-            return "callback-auth-url";
+            return "callback-auth-uri";
         }
 
     };
@@ -81,7 +81,7 @@ public class ConfigurationService {
     /**
      * The property which defines whether a mock authentication callback
      * service should be used, rather than making actual HTTP requests to the
-     * configured callback URL.
+     * configured callback URI.
      */
     private static final BooleanGuacamoleProperty CALLBACK_USE_MOCK_SERVICE =
             new BooleanGuacamoleProperty() {
@@ -94,24 +94,24 @@ public class ConfigurationService {
     };
 
     /**
-     * Returns the HTTP or HTTPS URL which should be used as the authentication
+     * Returns the HTTP or HTTPS URI which should be used as the authentication
      * callback.
      *
      * @return
-     *     The HTTP or HTTPS URL which should be used as the authentication
+     *     The HTTP or HTTPS URI which should be used as the authentication
      *     callback.
      *
      * @throws GuacamoleException
-     *     If the "callback-auth-url" property is missing or contains an
-     *     invalid URL.
+     *     If the "callback-auth-uri" property is missing or contains an
+     *     invalid URI.
      */
-    public URL getCallbackURL() throws GuacamoleException {
-        return environment.getRequiredProperty(CALLBACK_AUTH_URL);
+    public URI getCallbackURI() throws GuacamoleException {
+        return environment.getRequiredProperty(CALLBACK_AUTH_URI);
     }
 
     /**
      * Returns whether a mock authentication callback service should be used,
-     * rather than making actual HTTP requests to the configured callback URL.
+     * rather than making actual HTTP requests to the configured callback URI.
      * The mock callback service simply returns the default user data, if
      * available, and fails authentication if no default user data is provided.
      *

@@ -22,33 +22,33 @@
 
 package org.glyptodon.guacamole.auth.callback.conf;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import org.apache.guacamole.GuacamoleException;
 import org.apache.guacamole.GuacamoleServerException;
 import org.apache.guacamole.properties.GuacamoleProperty;
 
 /**
- * A GuacamoleProperty whose value is a URL.
+ * A GuacamoleProperty whose value is a URI.
  */
-public abstract class URLGuacamoleProperty implements GuacamoleProperty<URL> {
+public abstract class URIGuacamoleProperty implements GuacamoleProperty<URI> {
 
     @Override
-    public URL parseValue(String value) throws GuacamoleException {
+    public URI parseValue(String value) throws GuacamoleException {
 
         // If no property provided, return null.
         if (value == null)
             return null;
 
-        // Parse string as URL
+        // Parse string as URI
         try {
-            return new URL(value);
+            return new URI(value);
         }
 
         // Rethrow failure to parse as a GuacamoleException
-        catch (MalformedURLException e) {
+        catch (URISyntaxException e) {
             throw new GuacamoleServerException("Property \"" + getName()
-                    + "\" must be a valid URL.", e);
+                    + "\" must be a valid URI.", e);
         }
 
     }
