@@ -1,0 +1,16 @@
+{
+
+    "guacamoleVersion" : "0.9.12-incubating",
+
+    "name"      : "HTTP Callback Authentication",
+    "namespace" : "guac-callback",
+
+    "authProviders" : [
+        "org.glyptodon.guacamole.auth.callback.CallbackAuthenticationProvider"
+    ],
+
+    "translations" : [
+        "translations/en.json"
+    ]
+
+}
