@@ -66,11 +66,6 @@ public class CallbackAuthenticationProvider implements AuthenticationProvider {
     }
 
     @Override
-    public Object getResource() throws GuacamoleException {
-        return null;
-    }
-
-    @Override
     public AuthenticatedUser authenticateUser(Credentials credentials) throws GuacamoleException {
 
         AuthenticationProviderService authProviderService = injector.getInstance(AuthenticationProviderService.class);
