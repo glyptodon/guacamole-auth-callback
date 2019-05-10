@@ -29,9 +29,9 @@
     <groupId>org.glyptodon.guacamole</groupId>
     <artifactId>guacamole-auth-callback</artifactId>
     <packaging>jar</packaging>
-    <version>0.9.12</version>
+    <version>1.0.0-1</version>
     <name>guacamole-auth-callback</name>
-    <url>http://glyptodon.org/</url>
+    <url>https://glyptodon.com/</url>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -46,8 +46,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.3</version>
                 <configuration>
-                    <source>1.6</source>
-                    <target>1.6</target>
+                    <source>1.8</source>
+                    <target>1.8</target>
                     <compilerArgs>
                         <arg>-Xlint:all</arg>
                         <arg>-Werror</arg>
@@ -85,7 +85,7 @@
         <dependency>
             <groupId>org.apache.guacamole</groupId>
             <artifactId>guacamole-ext</artifactId>
-            <version>0.9.12-incubating</version>
+            <version>1.0.0</version>
             <scope>provided</scope>
         </dependency>
 

@@ -26,8 +26,8 @@ package org.glyptodon.guacamole.auth.callback;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import org.apache.guacamole.GuacamoleException;
+import org.apache.guacamole.net.auth.AbstractAuthenticationProvider;
 import org.apache.guacamole.net.auth.AuthenticatedUser;
-import org.apache.guacamole.net.auth.AuthenticationProvider;
 import org.apache.guacamole.net.auth.Credentials;
 import org.apache.guacamole.net.auth.UserContext;
 
@@ -37,7 +37,7 @@ import org.apache.guacamole.net.auth.UserContext;
  * within the HTTP response from the callback, or declared within a JSON file
  * in GUACAMOLE_HOME.
  */
-public class CallbackAuthenticationProvider implements AuthenticationProvider {
+public class CallbackAuthenticationProvider extends AbstractAuthenticationProvider {
 
     /**
      * Injector which will manage the object graph of this authentication
@@ -74,25 +74,12 @@ public class CallbackAuthenticationProvider implements AuthenticationProvider {
     }
 
     @Override
-    public AuthenticatedUser updateAuthenticatedUser(AuthenticatedUser authenticatedUser,
-            Credentials credentials) throws GuacamoleException {
-        return authenticatedUser;
-    }
-
-    @Override
     public UserContext getUserContext(AuthenticatedUser authenticatedUser)
             throws GuacamoleException {
 
         AuthenticationProviderService authProviderService = injector.getInstance(AuthenticationProviderService.class);
         return authProviderService.getUserContext(authenticatedUser);
 
-    }
-
-    @Override
-    public UserContext updateUserContext(UserContext context,
-            AuthenticatedUser authenticatedUser, Credentials credentials)
-            throws GuacamoleException {
-        return context;
     }
 
 }
