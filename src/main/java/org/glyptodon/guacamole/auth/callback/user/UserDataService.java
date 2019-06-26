@@ -27,13 +27,15 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import org.apache.guacamole.GuacamoleException;
 import org.apache.guacamole.net.auth.Connection;
 import org.apache.guacamole.net.auth.ConnectionGroup;
 import org.apache.guacamole.net.auth.Directory;
 import org.apache.guacamole.net.auth.User;
+import org.apache.guacamole.net.auth.permission.ObjectPermissionSet;
 import org.apache.guacamole.net.auth.simple.SimpleConnectionGroup;
-import org.apache.guacamole.net.auth.simple.SimpleConnectionGroupDirectory;
 import org.apache.guacamole.net.auth.simple.SimpleDirectory;
+import org.apache.guacamole.net.auth.simple.SimpleObjectPermissionSet;
 import org.apache.guacamole.net.auth.simple.SimpleUser;
 
 /**
@@ -86,12 +88,24 @@ public class UserDataService {
         String username = userData.getUsername();
 
         // Build user object with READ access to all available data
-        return new SimpleUser(
-            username,
-            getUserIdentifiers(userData),
-            getConnectionIdentifiers(userData),
-            getConnectionGroupIdentifiers(userData)
-        );
+        return new SimpleUser(username) {
+
+            @Override
+            public ObjectPermissionSet getUserPermissions() throws GuacamoleException {
+                return new SimpleObjectPermissionSet(getUserIdentifiers(userData));
+            }
+
+            @Override
+            public ObjectPermissionSet getConnectionPermissions() throws GuacamoleException {
+                return new SimpleObjectPermissionSet(getConnectionIdentifiers(userData));
+            }
+
+            @Override
+            public ObjectPermissionSet getConnectionGroupPermissions() throws GuacamoleException {
+                return new SimpleObjectPermissionSet(getConnectionGroupIdentifiers(userData));
+            }
+
+        };
 
     }
 
@@ -260,7 +274,7 @@ public class UserDataService {
     public Directory<ConnectionGroup> getConnectionGroupDirectory(UserData userData) {
 
         // Expose only the root group in the connection group directory
-        return new SimpleConnectionGroupDirectory(
+        return new SimpleDirectory<>(
             Collections.singleton(getRootConnectionGroup(userData))
         );
 
