@@ -42,13 +42,6 @@ import org.glyptodon.guacamole.auth.callback.user.UserDataService;
 public class CallbackAuthenticationProviderModule extends AbstractModule {
 
     /**
-     * JAX-WS client builder with support for deserializing JSON.
-     */
-    private final Client client = ClientBuilder.newBuilder()
-            .register(JacksonJsonProvider.class)
-            .build();
-
-    /**
      * Guacamole server environment.
      */
     private final Environment environment;
@@ -95,8 +88,24 @@ public class CallbackAuthenticationProviderModule extends AbstractModule {
         // Bind singleton ObjectMapper for JSON serialization/deserialization
         bind(ObjectMapper.class).in(Scopes.SINGLETON);
 
-        // Bind singleton Jersey REST client
-        bind(Client.class).toInstance(client);
+        // Temporarily override context classloader (used by Jersey) such that
+        // this extension's dedicated classloader is used instead and bundled
+        // libraries can be found, including Jersey itself
+        ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+        try {
+            Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
+
+            // Bind singleton Jersey REST client
+            bind(Client.class).toInstance(ClientBuilder.newBuilder()
+                    .register(JacksonJsonProvider.class)
+                    .build());
+
+        }
+
+        // Always restore original classloader
+        finally {
+            Thread.currentThread().setContextClassLoader(contextClassLoader);
+        }
 
     }
 

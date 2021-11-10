@@ -123,51 +123,65 @@ public class CallbackService {
     public UserData retrieveUserData(Credentials credentials)
             throws GuacamoleException {
 
-        // Use default UserData if we are only mocking service responses
-        if (confService.useMockService())
-            return confService.getDefaultResponse();
-
-        // Otherwise, use defined HTTP callback
+        // Temporarily override context classloader (used by Jersey) such that
+        // this extension's dedicated classloader is used instead and bundled
+        // libraries can be found, including Jersey itself
+        ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
         try {
+            Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
 
-            // Create WebTarget for arbitrary callback
-            WebTarget target = client.target(confService.getCallbackURI());
+            // Use default UserData if we are only mocking service responses
+            if (confService.useMockService())
+                return confService.getDefaultResponse();
 
-            // Copy parameters from credential request, if available
-            HttpServletRequest request = credentials.getRequest();
-            if (request != null)
-                target = copyParameters(request, target);
+            // Otherwise, use defined HTTP callback
+            try {
 
-            // Attempt to retrieve UserData
-            Response response =
-                    target.request(MediaType.MEDIA_TYPE_WILDCARD)
-                          .post(null);
+                // Create WebTarget for arbitrary callback
+                WebTarget target = client.target(confService.getCallbackURI());
 
-            // Determine status of response
-            switch (response.getStatusInfo().getFamily()) {
+                // Copy parameters from credential request, if available
+                HttpServletRequest request = credentials.getRequest();
+                if (request != null)
+                    target = copyParameters(request, target);
 
-                // Return nothing if the callback reported an error
-                case CLIENT_ERROR:
-                case SERVER_ERROR:
-                    return null;
+                // Attempt to retrieve UserData
+                Response response =
+                        target.request(MediaType.MEDIA_TYPE_WILDCARD)
+                              .post(null);
 
-                // If the callback reported success, attempt to parse the
-                // response
-                case SUCCESSFUL:
-                    return response.readEntity(UserData.class);
-                    
+                // Determine status of response
+                switch (response.getStatusInfo().getFamily()) {
+
+                    // Return nothing if the callback reported an error
+                    case CLIENT_ERROR:
+                    case SERVER_ERROR:
+                        return null;
+
+                    // If the callback reported success, attempt to parse the
+                    // response
+                    case SUCCESSFUL:
+                        return response.readEntity(UserData.class);
+                        
+                }
+
             }
 
+            // It is expected that simple services will not bother with returning
+            // user data JSON, but will instead rely on the default response
+            catch (ResponseProcessingException e) {
+                logger.debug("Callback response was not valid user data JSON.", e);
+            }
+
+            // If callback did not return valid JSON, use default (if available)
+            return confService.getDefaultResponse();
+
         }
 
-        // It is expected that simple services will not bother with returning
-        // user data JSON, but will instead rely on the default response
-        catch (ResponseProcessingException e) {
-            logger.debug("Callback response was not valid user data JSON.", e);
+        // Always restore original classloader
+        finally {
+            Thread.currentThread().setContextClassLoader(contextClassLoader);
         }
-
-        // If callback did not return valid JSON, use default (if available)
-        return confService.getDefaultResponse();
 
     }
 
