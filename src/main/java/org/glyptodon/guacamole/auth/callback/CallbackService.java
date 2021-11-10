@@ -25,13 +25,16 @@ package org.glyptodon.guacamole.auth.callback;
 import org.glyptodon.guacamole.auth.callback.conf.ConfigurationService;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientHandlerException;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ResponseProcessingException;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import static javax.ws.rs.core.Response.Status.Family.CLIENT_ERROR;
+import static javax.ws.rs.core.Response.Status.Family.SERVER_ERROR;
+import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 import org.apache.guacamole.GuacamoleException;
 import org.apache.guacamole.net.auth.Credentials;
 import org.glyptodon.guacamole.auth.callback.user.UserData;
@@ -65,20 +68,20 @@ public class CallbackService {
 
     /**
      * Copies all parameter values from the given HTTPServletRequest to a new
-     * Jersey WebResource, using the given WebResource as a basis.
+     * JAX-RS WebTarget, using the given WebTarget as a basis.
      *
      * @param request
      *     The HttpServletRequest to copy parameters from.
      *
-     * @param resource
-     *     The WebResource to use as a basis.
+     * @param target 
+     *     The WebTarget to use as a basis.
      *
      * @return
-     *     A new WebResource identical to the provided WebResource, but with
+     *     A new WebTarget identical to the provided WebTarget, but with
      *     query parameters copied from the given HttpServletRequest.
      */
     @SuppressWarnings("unchecked") // getParameterMap() is defined as returning Map<String, String[]>
-    private WebResource copyParameters(HttpServletRequest request, WebResource resource) {
+    private WebTarget copyParameters(HttpServletRequest request, WebTarget target) {
 
         // Get explicitly-typed parameter map
         Map<String, String[]> parameterMap = (Map<String, String[]>)
@@ -90,11 +93,11 @@ public class CallbackService {
             // Add each name/value pair
             String name = entry.getKey();
             for (String value : entry.getValue())
-                resource = resource.queryParam(name, value);
+                target = target.queryParam(name, value);
 
         }
 
-        return resource;
+        return target;
 
     }
 
@@ -127,21 +130,21 @@ public class CallbackService {
         // Otherwise, use defined HTTP callback
         try {
 
-            // Create WebResource for arbitrary callback
-            WebResource resource = client.resource(confService.getCallbackURI());
+            // Create WebTarget for arbitrary callback
+            WebTarget target = client.target(confService.getCallbackURI());
 
             // Copy parameters from credential request, if available
             HttpServletRequest request = credentials.getRequest();
             if (request != null)
-                resource = copyParameters(request, resource);
+                target = copyParameters(request, target);
 
             // Attempt to retrieve UserData
-            ClientResponse response =
-                    resource.accept(MediaType.MEDIA_TYPE_WILDCARD)
-                            .post(ClientResponse.class);
+            Response response =
+                    target.request(MediaType.MEDIA_TYPE_WILDCARD)
+                          .post(null);
 
             // Determine status of response
-            switch (response.getClientResponseStatus().getFamily()) {
+            switch (response.getStatusInfo().getFamily()) {
 
                 // Return nothing if the callback reported an error
                 case CLIENT_ERROR:
@@ -151,7 +154,7 @@ public class CallbackService {
                 // If the callback reported success, attempt to parse the
                 // response
                 case SUCCESSFUL:
-                    return response.getEntity(UserData.class);
+                    return response.readEntity(UserData.class);
                     
             }
 
@@ -159,7 +162,7 @@ public class CallbackService {
 
         // It is expected that simple services will not bother with returning
         // user data JSON, but will instead rely on the default response
-        catch (ClientHandlerException e) {
+        catch (ResponseProcessingException e) {
             logger.debug("Callback response was not valid user data JSON.", e);
         }
 

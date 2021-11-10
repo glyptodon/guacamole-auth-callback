@@ -22,18 +22,17 @@
 
 package org.glyptodon.guacamole.auth.callback;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.glyptodon.guacamole.auth.callback.conf.ConfigurationService;
 import com.google.inject.AbstractModule;
 import com.google.inject.Scopes;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.config.ClientConfig;
-import com.sun.jersey.api.client.config.DefaultClientConfig;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
 import org.apache.guacamole.GuacamoleException;
 import org.apache.guacamole.environment.Environment;
 import org.apache.guacamole.environment.LocalEnvironment;
 import org.apache.guacamole.net.auth.AuthenticationProvider;
-import org.codehaus.jackson.jaxrs.JacksonJsonProvider;
-import org.codehaus.jackson.map.ObjectMapper;
+import org.glassfish.jersey.jackson.internal.jackson.jaxrs.json.JacksonJsonProvider;
 import org.glyptodon.guacamole.auth.callback.user.UserDataService;
 
 /**
@@ -43,9 +42,11 @@ import org.glyptodon.guacamole.auth.callback.user.UserDataService;
 public class CallbackAuthenticationProviderModule extends AbstractModule {
 
     /**
-     * Jersey client configuration.
+     * JAX-WS client builder with support for deserializing JSON.
      */
-    private final ClientConfig CLIENT_CONFIG = new DefaultClientConfig(JacksonJsonProvider.class);
+    private final Client client = ClientBuilder.newBuilder()
+            .register(JacksonJsonProvider.class)
+            .build();
 
     /**
      * Guacamole server environment.
@@ -95,7 +96,7 @@ public class CallbackAuthenticationProviderModule extends AbstractModule {
         bind(ObjectMapper.class).in(Scopes.SINGLETON);
 
         // Bind singleton Jersey REST client
-        bind(Client.class).toInstance(Client.create(CLIENT_CONFIG));
+        bind(Client.class).toInstance(client);
 
     }
 

@@ -22,6 +22,7 @@
 
 package org.glyptodon.guacamole.auth.callback.conf;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
 import java.io.File;
 import java.io.IOException;
@@ -29,7 +30,6 @@ import java.net.URI;
 import org.apache.guacamole.GuacamoleException;
 import org.apache.guacamole.environment.Environment;
 import org.apache.guacamole.properties.BooleanGuacamoleProperty;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.glyptodon.guacamole.auth.callback.user.UserData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
